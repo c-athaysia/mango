@@ -128,9 +128,15 @@ void wsov_detach_frame_listener(void) {
 }
 
 void workspace_overview_prepare_output_frame(Monitor *m) {
-	if (!workspace_overview_is_active_on(m))
+	if (!workspace_overview_is_active())
 		return;
-	if (wsov.frame_active && wsov.closing) {
+	/*
+	 * Live card nodes are shared scene nodes. Any output can commit them, not
+	 * just the monitor showing WSOV, so flush the common clip before every
+	 * output frame. Otherwise an inner scroller commit can be presented on
+	 * another monitor for one frame before the WSOV output refreshes it.
+	 */
+	if (m == wsov.mon && wsov.frame_active && wsov.closing) {
 		wsov_process_frame();
 		return;
 	}
